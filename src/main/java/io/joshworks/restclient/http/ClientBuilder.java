@@ -8,7 +8,12 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -19,6 +24,7 @@ import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.ssl.SSLContextBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.util.HashMap;
@@ -52,7 +58,21 @@ public class ClientBuilder {
 
             RequestConfig clientConfig = configBuilder.build();
 
-            PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509CertChain, authType) -> true)
+                    .build();
+
+            SSLConnectionSocketFactory sslConnectionSocketFactory =
+                    new SSLConnectionSocketFactory(sslContext, new String[]
+                            {"SSLv2Hello", "SSLv3", "TLSv1","TLSv1.1", "TLSv1.2" }, null,
+                            NoopHostnameVerifier.INSTANCE);
+
+            PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager(
+                     RegistryBuilder.<ConnectionSocketFactory>create()
+                                    .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                                    .register("https", sslConnectionSocketFactory).build());
+
+
             syncConnectionManager.setMaxTotal(maxTotal);
             syncConnectionManager.setDefaultMaxPerRoute(maxRoute);
             CloseableHttpClient syncClient = createSyncClient(clientConfig, syncConnectionManager);
