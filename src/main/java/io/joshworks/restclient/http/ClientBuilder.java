@@ -62,10 +62,8 @@ public class ClientBuilder {
                     .loadTrustMaterial(null, (x509CertChain, authType) -> true)
                     .build();
 
-            SSLConnectionSocketFactory sslConnectionSocketFactory =
-                    new SSLConnectionSocketFactory(sslContext, new String[]
-                            {"SSLv2Hello", "SSLv3", "TLSv1","TLSv1.1", "TLSv1.2" }, null,
-                            NoopHostnameVerifier.INSTANCE);
+            SSLConnectionSocketFactory sslConnectionSocketFactory
+                    = new SSLConnectionSocketFactory(sslContext, null, null, NoopHostnameVerifier.INSTANCE);
 
             PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager(
                      RegistryBuilder.<ConnectionSocketFactory>create()
