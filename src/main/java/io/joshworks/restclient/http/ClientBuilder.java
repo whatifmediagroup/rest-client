@@ -56,6 +56,8 @@ public class ClientBuilder {
     public RestClient build() {
         try {
 
+            configBuilder
+                    .setNormalizeUri(false);
             RequestConfig clientConfig = configBuilder.build();
 
             final SSLContext sslContext = new SSLContextBuilder()
